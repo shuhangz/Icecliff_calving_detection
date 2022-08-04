@@ -17,7 +17,7 @@ settings.DEBUG = true;
 
 
 result = struct('dateBefore',{},'dateAfter',{}, 'collapsePointCloudClusters',{},...
-    'collapseVolumeList',{});
+    'collapseVolumeList',{},'snowVolumeList',{});
 
 i=1;
 lasPath = fullfile(dirLASFile(i).folder, dirLASFile(i).name);

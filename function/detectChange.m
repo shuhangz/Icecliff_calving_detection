@@ -1,4 +1,4 @@
-function [clusterVolumeList,clusterPointCloudList,s] = calculateVolume(s,settings,varargin)
+function [clusterPointCloudList,s] = calculateVolume(s,settings,varargin)
 %CALCULATEVOLUME 此处显示有关此函数的摘要
 %   此处显示详细说明
 narginchk(2,3)
@@ -120,21 +120,7 @@ assert(numel(clusterPointCloudList)>0);
 
 
 
-%% calculate volume of each clusters, using alphashape
-clusterVolumeList = zeros(numel(clusterPointCloudList),1);
-for i=1:numel(clusterPointCloudList)
-    xyzPoints = clusterPointCloudList(i).Location;
-    % regionThreshold = 5, as minimum volume of a region
-    shp = alphaShape(xyzPoints,2*settings.MIN_DIST_CLUSTER,'RegionThreshold',5); % alpha radius should be tuned
-    %     if shp.numRegions > 1
-    %         shp.plot;
-    %         error('multiple regions!');
-    %     end
-    
-    shp.RegionThreshold = 1; % only the first region
-    clusterVolume = volume(shp);
-    clusterVolumeList(i) = clusterVolume;
-end
+
 
 end
 

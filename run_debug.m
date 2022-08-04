@@ -14,6 +14,9 @@ settings.MIN_DIST_CLUSTER = .9;
 settings.MIN_DIST_PLANEFIT = .1;
 settings.PERCENTAGE_THRESHOLD = .25;
 settings.MAX_XYPLANE_AREA = 800;
+settings.VOLUME_THRESHOLD = 2;
+settings.NORMAL_ANGLE_THRESHOLD = 45;
+
 settings.DEBUG = true;
 
 result = struct('dateBefore',{},'dateAfter',{}, 'collapsePointCloudClusters',{},...
@@ -24,12 +27,11 @@ i=3;
 lasPath = fullfile(dirLASFile(i).folder, dirLASFile(i).name);
 % read point cloud
 s = LASread(lasPath,false,true);
-[clusterVolumeList,clusterPointCloudList,sUpdated] = calculateVolume(s,settings,pointcloudValidSpace);
+[clusterPointCloudList,sUpdated] = detectChange(s,settings,pointcloudValidSpace);
 
 result(i).dateBefore = dirLASFile(i).name(1:4);
 result(i).dateAfter = dirLASFile(i).name(6:9);
 result(i).collapsePointCloudClusters = clusterPointCloudList;
-result(i).collapseVolumeList = clusterVolumeList;
 
 % write clustered LAS file
 saveFilePrefix = strcat(result(i).dateBefore,'-',result(i).dateAfter);
@@ -53,3 +55,5 @@ if settings.DEBUG
     pcshowpair(ptCloud,clusterPointCloudForExport);
 end
 
+SNOW_DEPTH = .3;
+resultWithSnowVolume = calculateSnowVolume(result,SNOW_DEPTH,settings);
