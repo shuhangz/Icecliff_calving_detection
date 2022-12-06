@@ -19,8 +19,8 @@ settings.NORMAL_ANGLE_THRESHOLD = 45;
 
 settings.DEBUG = true;
 
-result = struct('dateBefore',{},'dateAfter',{}, 'collapsePointCloudClusters',{},...
-    'collapseVolumeList',{},'snowVolumeList',{});
+result = struct('dateBefore',[],'dateAfter',[], 'collapsePointCloudClusters',[],...
+    'collapseVolumeList',[],'snowVolumeList',[]);
 load(fullfile(folder,validSpaceFilename));
 
 for i=1:length(dirLASFile)
@@ -60,13 +60,35 @@ end
 
 
 %% calculate snow volume
-SNOW_DEPTH = 0.3;
+SNOW_DEPTH = 0.5;
 resultWithSnowVolume = calculateSnowVolume(result,SNOW_DEPTH,settings);
 
+%% export result
+v = zeros(length(resultWithSnowVolume),1);
+vs = zeros(length(resultWithSnowVolume),1);
+db = string(zeros(length(resultWithSnowVolume),1));
+da = string(zeros(length(resultWithSnowVolume),1));
 
-for i=1:length(dirLASFile)
-    v = sum(resultWithSnowVolume(i).collapseVolumeList);
-    str = sprintf('%s相比%s的崩解体积为：%f 立方米',resultWithSnowVolume(i).dateAfter, resultWithSnowVolume(i).dateBefore, v);
+for i=1:length(resultWithSnowVolume)
+    v(i) = sum(resultWithSnowVolume(i).collapseVolumeList);
+    vs(i) = sum(resultWithSnowVolume(i).snowVolumeList);
+    
+    db(i) = string(resultWithSnowVolume(i).dateBefore);
+    da(i) = string(resultWithSnowVolume(i).dateAfter);
+    
+    str = sprintf('%s相比%s的崩解体积为：%f 立方米，积雪体积：%f立方米',resultWithSnowVolume(i).dateAfter,...
+        resultWithSnowVolume(i).dateBefore, v(i),vs(i));
     disp(str);
 end
+
+exportStruct = struct('dateBefore',[],'dateAfter',[], 'collapseVolume',[],'snowVolume',[]);
+exportStruct.dateBefore = db;
+exportStruct.dateAfter = da;
+exportStruct.collapseVolume = v;
+exportStruct.snowVolume = vs;
+
+writetable(struct2table(exportStruct), fullfile(folder,outputSubFolder,'snow_volume.xlsx'))
+
+
+
 

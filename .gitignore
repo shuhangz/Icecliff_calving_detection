@@ -29,3 +29,5 @@ codegen/
 
 # Octave session info
 octave-workspace
+
+function/3rdparty/

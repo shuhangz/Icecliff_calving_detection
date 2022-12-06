@@ -55,15 +55,15 @@ for i = 1:length(resultWithSnowVolume)
         cp = 0.5*cross(v1,v2);
         surfaceArea = sum(sqrt(dot(cp, cp, 2)));
         
-        %         % debug plot
-        %         trisurf(tri,xyz(:,1),xyz(:,2),xyz(:,3), ...
-        %             intersect*1.0,'FaceAlpha',0.8);
-        %
-        %         axis equal
-        %         hold on
-        %         quiver3(P(:,1),P(:,2),P(:,3), ...
-        %             fNormal(:,1),fNormal(:,2),fNormal(:,3),0.5,'color','r');
-        %         % end debug
+%                 % debug plot
+%                 trisurf(tri,xyz(:,1),xyz(:,2),xyz(:,3), ...
+%                     intersect*1.0,'FaceAlpha',0.8);
+%         
+%                 axis equal
+% %                 hold on
+% %                 quiver3(P(:,1),P(:,2),P(:,3), ...
+% %                     fNormal(:,1),fNormal(:,2),fNormal(:,3),0.5,'color','r');
+%                 % end debug
         snowVolume = surfaceArea*snowDepth;
         if snowVolume > clusterVolume
             snowVolume = clusterVolume;
