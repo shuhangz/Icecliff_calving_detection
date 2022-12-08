@@ -3,10 +3,13 @@ addpath('.\function');
 addpath('.\function\3rdparty');
 folder = 'D:\Working_Project\Point cloud\2022_haibaowan\diff\';
 dirLASFile = dir(fullfile(folder,'*.las'));
-outputSubFolder = 'export';
+outputSubFolder = 'export_all';
 validSpaceFilename = 'pointcloudValidSpace.mat';
 
 mkdir(fullfile(folder,outputSubFolder));
+
+SNOW_DEPTH = 0.5;
+YEAR = '2022';
 
 settings = struct;
 settings.FILTER_METHOD_USED = [1,1,1,1,1];
@@ -17,7 +20,7 @@ settings.MAX_XYPLANE_AREA = 800;
 settings.VOLUME_THRESHOLD = 2;
 settings.NORMAL_ANGLE_THRESHOLD = 45;
 
-settings.DEBUG = true;
+settings.DEBUG = false;
 
 result = struct('dateBefore',[],'dateAfter',[], 'collapsePointCloudClusters',[],...
     'collapseVolumeList',[],'snowVolumeList',[]);
@@ -60,7 +63,6 @@ end
 
 
 %% calculate snow volume
-SNOW_DEPTH = 0.5;
 resultWithSnowVolume = calculateSnowVolume(result,SNOW_DEPTH,settings);
 
 %% export result
@@ -73,19 +75,24 @@ for i=1:length(resultWithSnowVolume)
     v(i) = sum(resultWithSnowVolume(i).collapseVolumeList);
     vs(i) = sum(resultWithSnowVolume(i).snowVolumeList);
     
-    db(i) = string(resultWithSnowVolume(i).dateBefore);
-    da(i) = string(resultWithSnowVolume(i).dateAfter);
+    db_MM = resultWithSnowVolume(i).dateBefore(1:2);
+    db_dd = resultWithSnowVolume(i).dateBefore(3:4);
+    da_MM = resultWithSnowVolume(i).dateAfter(1:2);
+    da_dd = resultWithSnowVolume(i).dateAfter(3:4);
+    db(i) = strcat(YEAR,'-',db_MM,'-',db_dd);
+    da(i) = strcat(YEAR,'-',da_MM,'-',da_dd);    
     
     str = sprintf('%s相比%s的崩解体积为：%f 立方米，积雪体积：%f立方米',resultWithSnowVolume(i).dateAfter,...
         resultWithSnowVolume(i).dateBefore, v(i),vs(i));
     disp(str);
 end
 
+%% export result to xlsx
 exportStruct = struct('dateBefore',[],'dateAfter',[], 'collapseVolume',[],'snowVolume',[]);
-exportStruct.dateBefore = db;
-exportStruct.dateAfter = da;
+exportStruct.dateBefore = datetime(db,"InputFormat","yyyy-MM-dd");
+exportStruct.dateAfter = datetime(da,"InputFormat","yyyy-MM-dd");
 exportStruct.collapseVolume = v;
-exportStruct.snowVolume = vs;
+exportStruct.snowVolume = vs;S
 
 writetable(struct2table(exportStruct), fullfile(folder,outputSubFolder,'snow_volume.xlsx'))
 

@@ -4,7 +4,6 @@ import math
 import psutil
 
 # os.environ["_CCTRACE_"]="ON" # only if you want C++ debug traces
-
 import cloudComPy as cc
 import numpy as np
 import matplotlib
@@ -15,8 +14,8 @@ from pylab import *
 
 path = 'D:\\Working_Project\\Point cloud\\2022_haibaowan\\diff\\Haibaowan_land_only_mesh.bin'
 
-STEP = 9
 DISTANCE_THRESHOLD = .3
+PROJECT_NAME = ''
 
 working_dir = os.path.dirname(path)
 
@@ -25,30 +24,23 @@ def main():
     res = cc.importFile(path)
     meshes = res[0]
 
-    for i in range(0, len(meshes)-1, STEP):
-        # i=0
-        if (i+STEP > len(meshes)-1):
-            break
-        first_epoch_mesh = meshes[i]
-        next_epoch_mesh = meshes[i+STEP]
-        first_epoch_date = first_epoch_mesh.getName()[4:8]
-        next_epoch_date = next_epoch_mesh.getName()[4:8]
-        changed_pointcloud = compare_mesh(
-            first_epoch_mesh, next_epoch_mesh, DISTANCE_THRESHOLD)
-        
-        # histogram_fit(changed_pointcloud)
-        pass
+    for i in range(0,len(meshes)-1):
+        for j in range(i+1,len(meshes)-1):
+            first_epoch_mesh = meshes[i]
+            next_epoch_mesh = meshes[j]
+            first_epoch_date = first_epoch_mesh.getName()[4:8]
+            next_epoch_date = next_epoch_mesh.getName()[4:8]
+            changed_pointcloud = compare_mesh(first_epoch_mesh, next_epoch_mesh, DISTANCE_THRESHOLD)
+            filename = PROJECT_NAME + first_epoch_date + '-' + next_epoch_date + '.las'
+            ret = cc.SavePointCloud(
+                changed_pointcloud, os.path.join(working_dir, filename))
 
-        filename = first_epoch_date + '-' + next_epoch_date + '.las'
-        ret = cc.SavePointCloud(
-            changed_pointcloud, os.path.join(working_dir, filename))
-
-        if ret == cc.CC_FILE_ERROR.CC_FERR_NO_ERROR:
-            print('successfully write point cloud:' +
-                  os.path.join(working_dir, filename))
-        else:
-            raise Exception("cannot write point cloud")
-
+            if ret == cc.CC_FILE_ERROR.CC_FERR_NO_ERROR:
+                print('successfully write point cloud:' +
+                    os.path.join(working_dir, filename))
+            else:
+                raise Exception("cannot write point cloud")
+    
     print('job done')
 
 
