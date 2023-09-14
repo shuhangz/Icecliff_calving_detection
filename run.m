@@ -3,10 +3,12 @@ addpath('.\function');
 addpath('.\function\3rdparty');
 folder = 'D:\Working_Project\Point cloud\2022_haibaowan\diff\';
 dirLASFile = dir(fullfile(folder,'*.las'));
-outputSubFolder = 'export_all';
+% dirLASFile = dir(fullfile(folder,'0216-0217.las'));
+
+outputSubFolder = 'export_single';
 validSpaceFilename = 'pointcloudValidSpace.mat';
 
-mkdir(fullfile(folder,outputSubFolder));
+% mkdir(fullfile(folder,outputSubFolder));
 
 SNOW_DEPTH = 0.5;
 YEAR = '2022';
@@ -21,6 +23,7 @@ settings.VOLUME_THRESHOLD = 2;
 settings.NORMAL_ANGLE_THRESHOLD = 45;
 
 settings.DEBUG = false;
+settings.EXPORT_MATRIX = false;
 
 result = struct('dateBefore',[],'dateAfter',[], 'collapsePointCloudClusters',[],...
     'collapseVolumeList',[],'snowVolumeList',[]);
@@ -38,9 +41,9 @@ for i=1:length(dirLASFile)
     
     % write clustered LAS file
     saveFilePrefix = strcat(result(i).dateBefore,'-',result(i).dateAfter);
-    %     LASwrite(s,fullfile(folder,outputSubFolder,strcat(saveFilePrefix,'-cluster.las')),'version',14);
+%     LASwrite(s,fullfile(folder,outputSubFolder,strcat(saveFilePrefix,'-cluster.las')),'version',14);
     clusterPointCloudForExport = pccat(clusterPointCloudList);
-    pcwrite(clusterPointCloudForExport,fullfile(folder,outputSubFolder,strcat(saveFilePrefix,'_diff.ply')),'Encoding','binary');
+%     pcwrite(clusterPointCloudForExport,fullfile(folder,outputSubFolder,strcat(saveFilePrefix,'_diff.ply')),'Encoding','binary');
     
     if settings.DEBUG
         xyzPoints = [s.record.x s.record.y s.record.z];
@@ -68,13 +71,15 @@ resultWithSnowVolume = calculateSnowVolume(result,SNOW_DEPTH,settings);
 %% export result
 v = zeros(length(resultWithSnowVolume),1);
 vs = zeros(length(resultWithSnowVolume),1);
+numCalving = zeros(length(resultWithSnowVolume),1);
 db = string(zeros(length(resultWithSnowVolume),1));
 da = string(zeros(length(resultWithSnowVolume),1));
 
 for i=1:length(resultWithSnowVolume)
     v(i) = sum(resultWithSnowVolume(i).collapseVolumeList);
     vs(i) = sum(resultWithSnowVolume(i).snowVolumeList);
-    
+    numCalving(i) = numel(resultWithSnowVolume(i).collapsePointCloudClusters);
+
     db_MM = resultWithSnowVolume(i).dateBefore(1:2);
     db_dd = resultWithSnowVolume(i).dateBefore(3:4);
     da_MM = resultWithSnowVolume(i).dateAfter(1:2);
@@ -88,13 +93,30 @@ for i=1:length(resultWithSnowVolume)
 end
 
 %% export result to xlsx
-exportStruct = struct('dateBefore',[],'dateAfter',[], 'collapseVolume',[],'snowVolume',[]);
+exportStruct = struct('dateBefore',[],'dateAfter',[], 'numCalve',[],'calvingVolume',[],'snowVolume',[]);
 exportStruct.dateBefore = datetime(db,"InputFormat","yyyy-MM-dd");
 exportStruct.dateAfter = datetime(da,"InputFormat","yyyy-MM-dd");
-exportStruct.collapseVolume = v;
-exportStruct.snowVolume = vs;S
+exportStruct.numCalve = numCalving;
+exportStruct.calvingVolume = v;
+exportStruct.snowVolume = vs;
 
 writetable(struct2table(exportStruct), fullfile(folder,outputSubFolder,'snow_volume.xlsx'))
+
+%% export result as matrix
+if settings.EXPORT_MATRIX
+    dateList = unique([exportStruct.dateBefore;exportStruct.dateAfter]);
+    numEpoch = length(dateList);
+    dateDict = containers.Map(cellstr(datestr(dateList)),1:numEpoch);
+    exportMatrix = zeros(numEpoch);
+    for i=1:length(exportStruct.dateBefore)
+        dateBefore = datestr(exportStruct.dateBefore(i));
+        pos_before = dateDict(dateBefore);
+        dateAfter = datestr(exportStruct.dateAfter(i));
+        pos_after = dateDict(dateAfter);
+        volume = exportStruct.collapseVolume(i);
+        exportMatrix(pos_before,pos_after) = volume;
+    end
+end
 
 
 

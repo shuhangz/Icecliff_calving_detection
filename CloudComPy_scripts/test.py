@@ -15,15 +15,25 @@ from pylab import *
 
 path = 'D:\\Working_Project\\Point cloud\\2022_haibaowan\\diff\\Haibaowan_land_only_mesh.bin'
 
-STEP = 9
-DISTANCE_THRESHOLD = .3
-
+STEP = 1
+DISTANCE_THRESHOLD = .348
+WRITE_RESULT = True
 working_dir = os.path.dirname(path)
+
+list_mean_front = []
+list_var_front = []
+list_mean_back = []
+list_var_back = []
 
 
 def main():
+    write_path = os.path.join(working_dir,"distance_threshold_"+str(DISTANCE_THRESHOLD))
     res = cc.importFile(path)
     meshes = res[0]
+    list_mean_front = np.zeros(len(meshes))
+    list_var_front = np.zeros(len(meshes))
+    list_mean_back = np.zeros(len(meshes))  
+    list_var_back = np.zeros(len(meshes))
 
     for i in range(0, len(meshes)-1, STEP):
         # i=0
@@ -33,21 +43,53 @@ def main():
         next_epoch_mesh = meshes[i+STEP]
         first_epoch_date = first_epoch_mesh.getName()[4:8]
         next_epoch_date = next_epoch_mesh.getName()[4:8]
-        changed_pointcloud = compare_mesh(
+        changed_pointcloud,first_epoch_point,next_epoch_point = compare_mesh(
             first_epoch_mesh, next_epoch_mesh, DISTANCE_THRESHOLD)
         
+        # compute mean and variance of front and back surface
+        mean_front,var_front = histogram_statistics(first_epoch_point)
+        mean_back,var_back = histogram_statistics(next_epoch_point)
+        list_mean_front[i] = mean_front
+        list_var_front[i] = var_front
+        list_mean_back[i] = mean_back
+        list_var_back[i] = var_back
+
         # histogram_fit(changed_pointcloud)
         pass
 
-        filename = first_epoch_date + '-' + next_epoch_date + '.las'
-        ret = cc.SavePointCloud(
-            changed_pointcloud, os.path.join(working_dir, filename))
+        if WRITE_RESULT:
+            filename = first_epoch_date + '-' + next_epoch_date + '.las'
+            
+            # check if write_path exist, if not, create the folder
+            if not os.path.exists(write_path):
+                os.makedirs(write_path)
+            # write changed point cloud
+            ret = cc.SavePointCloud(
+                changed_pointcloud, os.path.join(write_path, filename))
 
-        if ret == cc.CC_FILE_ERROR.CC_FERR_NO_ERROR:
-            print('successfully write point cloud:' +
-                  os.path.join(working_dir, filename))
-        else:
-            raise Exception("cannot write point cloud")
+            if ret == cc.CC_FILE_ERROR.CC_FERR_NO_ERROR:
+                print('successfully write point cloud:' +
+                    os.path.join(write_path, filename))
+            else:
+                raise Exception("cannot write point cloud")
+
+    # # plot mean and variance
+    # plt.figure()
+    # plt.plot(list_mean_front, label='front')
+    # plt.plot(list_mean_back, label='back')
+    # plt.legend()
+    # plt.title('mean')
+    # plt.figure()
+    # plt.plot(list_var_front, label='front')
+    # plt.plot(list_var_back, label='back')
+    # plt.legend()
+    # plt.title('variance')
+    # plt.show()
+
+    # export mean and variance to a single csv file
+    np.savetxt(os.path.join(write_path,'mean_var.csv'),np.transpose([list_mean_front,list_var_front,list_mean_back,list_var_back]),delimiter=',',header='mean_front,var_front,mean_back,var_back',comments='')
+
+
 
     print('job done')
 
@@ -87,25 +129,25 @@ def compare_mesh(first_epoch_mesh, next_epoch_mesh, distance_threshold=0.3, samp
     # ret = cc.SavePointCloud(front_surface_point, os.path.join(working_dir,'front.las'))
     # ret2 = cc.SavePointCloud(back_surface_point, os.path.join(working_dir,'back.las'))
 
-    return changed_pointcloud
+    return changed_pointcloud,first_epoch_point,next_epoch_point
 
 
-def process_point_cloud(first_epoch_point, distance_threshold, is_front=True):
-    sf_dist_first = first_epoch_point.getScalarField(
-        first_epoch_point.getScalarFieldDic()['C2M absolute distances'])
-    first_epoch_point.setCurrentScalarField(
-        first_epoch_point.getScalarFieldDic()['C2M absolute distances'])
+def process_point_cloud(point_cloud, distance_threshold, is_front=True):
+    sf_dist_first = point_cloud.getScalarField(
+        point_cloud.getScalarFieldDic()['C2M absolute distances'])
+    point_cloud.setCurrentScalarField(
+        point_cloud.getScalarFieldDic()['C2M absolute distances'])
     # front_surface_point = first_epoch_point.filterPointsByScalarValue(distance_threshold, sf_dist_first.getMax())
     if is_front:
-        front_surface_point = first_epoch_point.filterPointsByScalarValue(
+        surface_point = point_cloud.filterPointsByScalarValue(
             distance_threshold, sf_dist_first.getMax())
     else:
-        front_surface_point = first_epoch_point.filterPointsByScalarValue(
+        surface_point = point_cloud.filterPointsByScalarValue(
             sf_dist_first.getMin(), -distance_threshold)
-    front_surface_point.exportNormalToSF(True, True, True)
-    ind = front_surface_point.addScalarField("original_cloud_index")
+    surface_point.exportNormalToSF(True, True, True)
+    ind = surface_point.addScalarField("original_cloud_index")
 
-    sf = front_surface_point.getScalarField(ind)
+    sf = surface_point.getScalarField(ind)
     if is_front:
         sf.fill(0)
         # sf.fromNpArrayCopy(np.zeros(sf.currentSize(),dtype=np.float32))
@@ -113,7 +155,20 @@ def process_point_cloud(first_epoch_point, distance_threshold, is_front=True):
         sf.fill(1)
         # sf.fromNpArrayCopy(np.ones(sf.currentSize(),dtype=np.float32))
 
-    return front_surface_point
+    return surface_point
+
+def histogram_statistics(point_cloud):
+    sf = point_cloud.getScalarField(point_cloud.getScalarFieldDic()[
+                                    'C2M absolute distances'])
+    mean,var = sf.computeMeanAndVariance()
+    # asf = sf.toNpArray()
+    # draw histogram of asf
+    # (yhist, xhist) = np.histogram(asf, bins=256) # numpy histogram (without graphics)
+    # plt.hist(asf,bins=256)
+    
+
+    return mean,var
+
 
 
 def histogram_fit(point_cloud):

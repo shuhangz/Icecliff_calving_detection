@@ -1,4 +1,4 @@
-function [clusterPointCloudList,s] = calculateVolume(s,settings,varargin)
+function [clusterPointCloudList,s] = detectChange(s,settings,varargin)
 %CALCULATEVOLUME 此处显示有关此函数的摘要
 %   此处显示详细说明
 narginchk(2,3)

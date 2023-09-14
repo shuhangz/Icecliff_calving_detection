@@ -24,8 +24,8 @@ def main():
     res = cc.importFile(path)
     meshes = res[0]
 
-    for i in range(0,len(meshes)-1):
-        for j in range(i+1,len(meshes)-1):
+    for i in range(0,len(meshes)):
+        for j in range(i+1,len(meshes)):
             first_epoch_mesh = meshes[i]
             next_epoch_mesh = meshes[j]
             first_epoch_date = first_epoch_mesh.getName()[4:8]
