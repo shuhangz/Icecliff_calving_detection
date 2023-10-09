@@ -1,7 +1,9 @@
 clc;clear; close all;
 addpath('.\function');
 addpath('.\function\3rdparty');
-folder = 'D:\Working_Project\Point cloud\2022_haibaowan\diff\';
+% folder = 'D:\Working_Project\Point cloud\2022_haibaowan\diff\';
+folder = 'D:\Working_Project\Point cloud\2022_haibaowan\diff\distance_threshold_0.348';
+
 dirLASFile = dir(fullfile(folder,'*.las'));
 % dirLASFile = dir(fullfile(folder,'0216-0217.las'));
 
@@ -10,7 +12,7 @@ validSpaceFilename = 'pointcloudValidSpace.mat';
 
 % mkdir(fullfile(folder,outputSubFolder));
 
-SNOW_DEPTH = 0.5;
+SNOW_DEPTH = 0.66;
 YEAR = '2022';
 
 settings = struct;
@@ -23,7 +25,8 @@ settings.VOLUME_THRESHOLD = 2;
 settings.NORMAL_ANGLE_THRESHOLD = 45;
 
 settings.DEBUG = false;
-settings.EXPORT_MATRIX = false;
+settings.EXPORT_MATRIX = true;
+settings.EXPORT_POINTCLOUD = true;
 
 result = struct('dateBefore',[],'dateAfter',[], 'collapsePointCloudClusters',[],...
     'collapseVolumeList',[],'snowVolumeList',[]);
@@ -40,11 +43,13 @@ for i=1:length(dirLASFile)
     result(i).collapsePointCloudClusters = clusterPointCloudList;
     
     % write clustered LAS file
-    saveFilePrefix = strcat(result(i).dateBefore,'-',result(i).dateAfter);
-%     LASwrite(s,fullfile(folder,outputSubFolder,strcat(saveFilePrefix,'-cluster.las')),'version',14);
+    saveFilePrefix = strcat(result(i).dateBefore,'-',result(i).dateAfter);    
     clusterPointCloudForExport = pccat(clusterPointCloudList);
-%     pcwrite(clusterPointCloudForExport,fullfile(folder,outputSubFolder,strcat(saveFilePrefix,'_diff.ply')),'Encoding','binary');
-    
+    if settings.EXPORT_POINTCLOUD
+    %     LASwrite(s,fullfile(folder,outputSubFolder,strcat(saveFilePrefix,'-cluster.las')),'version',14);
+        pcwrite(clusterPointCloudForExport,fullfile(folder,outputSubFolder,strcat(saveFilePrefix,'_diff.ply')),'Encoding','binary');
+    end
+
     if settings.DEBUG
         xyzPoints = [s.record.x s.record.y s.record.z];
         try
@@ -100,7 +105,7 @@ exportStruct.numCalve = numCalving;
 exportStruct.calvingVolume = v;
 exportStruct.snowVolume = vs;
 
-writetable(struct2table(exportStruct), fullfile(folder,outputSubFolder,'snow_volume.xlsx'))
+writetable(struct2table(exportStruct), fullfile(folder,outputSubFolder,strcat('snow_volume_',string(SNOW_DEPTH),'.xlsx')))
 
 %% export result as matrix
 if settings.EXPORT_MATRIX
@@ -113,7 +118,7 @@ if settings.EXPORT_MATRIX
         pos_before = dateDict(dateBefore);
         dateAfter = datestr(exportStruct.dateAfter(i));
         pos_after = dateDict(dateAfter);
-        volume = exportStruct.collapseVolume(i);
+        volume = exportStruct.calvingVolume(i);
         exportMatrix(pos_before,pos_after) = volume;
     end
 end
