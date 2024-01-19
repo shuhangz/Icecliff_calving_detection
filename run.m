@@ -2,7 +2,7 @@ clc;clear; close all;
 addpath('.\function');
 addpath('.\function\3rdparty');
 % folder = 'D:\Working_Project\Point cloud\2022_haibaowan\diff\';
-folder = 'D:\Working_Project\Point cloud\2022_haibaowan\diff\distance_threshold_0.348';
+folder = 'D:\Working_Project\Point cloud\2022_haibaowan\diff\distance_threshold_0.35';
 
 dirLASFile = dir(fullfile(folder,'*.las'));
 % dirLASFile = dir(fullfile(folder,'0216-0217.las'));
@@ -22,7 +22,7 @@ settings.MIN_DIST_PLANEFIT = .1;
 settings.PERCENTAGE_THRESHOLD = .25;
 settings.MAX_XYPLANE_AREA = 800;
 settings.VOLUME_THRESHOLD = 2;
-settings.NORMAL_ANGLE_THRESHOLD = 45;
+settings.NORMAL_ANGLE_THRESHOLD = 80;
 
 settings.DEBUG = false;
 settings.EXPORT_MATRIX = true;

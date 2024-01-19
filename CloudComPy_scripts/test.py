@@ -16,7 +16,7 @@ from pylab import *
 path = 'D:\\Working_Project\\Point cloud\\2022_haibaowan\\diff\\Haibaowan_land_only_mesh.bin'
 
 STEP = 1
-DISTANCE_THRESHOLD = .348
+DISTANCE_THRESHOLD = .35
 WRITE_RESULT = True
 working_dir = os.path.dirname(path)
 
