@@ -3,7 +3,10 @@ clc
 
 sigma_a=0.05; % alignment
 sigma_s = 0.0250/100; % scale
-l=10; % length
+% cuboid
+a=5; % width
+b=10; % length
+c=2; % hight
 depth_snow = 0.66;
 density_snow=440; % snow density
 density_ice = 917;
@@ -14,8 +17,8 @@ sigma_l = sigma_a+sigma_s*l
 
 % case 1: full snow
 disp( "case 1: full snow");
-v=pi*l^3 /6;
-sigma_v = (pi*l^2 /2)*sigma_l
+v=a*b*c;
+sigma_v = sqrt(a^2*b^2+a^2*c^2+b^2*c^2)*sigma_l;
 m=density_snow*v;
 sigma_m = sqrt(v^2*sigma_snow_density^2+density_snow^2*sigma_v^2)
 mRatio = sigma_m/m
@@ -23,7 +26,7 @@ vRatio = sigma_v/v
 
 % case 2: ice+snow
 disp("case 2: ice+snow");
-surface_area = 2*pi*(l/2)^2; % half sphere
+surface_area = a*b; 
 V_snow = surface_area*depth_snow;
 V_ice = v - V_snow;
 assert(V_ice>0);
