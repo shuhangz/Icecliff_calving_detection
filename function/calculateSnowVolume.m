@@ -75,6 +75,9 @@ for i = 1:length(resultWithSnowVolume)
         a = clusterPoint.XLimits(2)-clusterPoint.XLimits(1);        
         b = clusterPoint.YLimits(2)-clusterPoint.YLimits(1);
         c = clusterPoint.ZLimits(2)-clusterPoint.ZLimits(1);
+        assert(a>=0);
+        assert(b>=0);
+        assert(c>=0);
         clusterBoudingBoxDimensions = [a,b,c];
         % boundingBox = [clusterPoint.XLimits, clusterPoint.YLimits, clusterPoint.ZLimits];
         if any(clusterBoudingBoxDimensions < snowDepth) 

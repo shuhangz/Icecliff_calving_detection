@@ -1,8 +1,8 @@
 clear
 clc
-
+%% settings
 sigma_alignment=0.05; % alignment
-sigma_s = 0.0250/100; % scale
+sigma_s = 0.0270/100; % scale
 % cuboid
 a=5; % width
 b=10; % length
@@ -11,8 +11,10 @@ depth_snow = 0.66;
 density_snow=440; % snow density
 density_ice = 917;
 sigma_snow_density = 50; % std of snow density
-sigma_depth = 0.28;
+sigma_depth = 0.28; % std of snow depth
 
+
+%% begin calculation
 sigma_a = sigma_alignment+sigma_s*a;
 sigma_b = sigma_alignment+sigma_s*b;
 sigma_c = sigma_alignment+sigma_s*c;
@@ -22,9 +24,17 @@ disp( "case 1: full snow");
 v=a*b*c;
 sigma_v = sqrt(sigma_a^2*b^2*c^2+a^2*sigma_b^2*c^2+a^2*b^2*sigma_c^2);
 m=density_snow*v;
-sigma_m = sqrt(v^2*sigma_snow_density^2+density_snow^2*sigma_v^2)
-mRatio = sigma_m/m
-vRatio = sigma_v/v
+sigma_m = sqrt(v^2*sigma_snow_density^2+density_snow^2*sigma_v^2);
+mRatio = sigma_m/m;
+vRatio = sigma_v/v;
+% display volume and snow mass
+disp(['volume:', num2str(v), ' m^3']);
+disp(['volume std:', num2str(sigma_v), ' m^3']);
+disp(['mass:', num2str(m), ' kg']);
+disp(['mass std:', num2str(sigma_m), ' kg']);
+% display relative precision
+disp(['mass relative precision:', num2str(mRatio)]);
+disp(['volume relative precision:', num2str(vRatio)]);
 
 % case 2: ice+snow
 disp("case 2: ice+snow");
