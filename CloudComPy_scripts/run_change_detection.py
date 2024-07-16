@@ -13,7 +13,7 @@ from matplotlib import colors
 from scipy.optimize import curve_fit
 from pylab import *
 
-path = 'D:\\Working_Project\\Point cloud\\2022_haibaowan\\diff\\Haibaowan_land_only_mesh.bin'
+path = r'D:\Working_Project\Point cloud\2022_haibaowan\publish\Ice_cliff_multitemporal_mesh.bin'
 
 STEP = 1
 DISTANCE_THRESHOLD = .35
@@ -73,19 +73,6 @@ def main():
             else:
                 raise Exception("cannot write point cloud")
 
-    # # plot mean and variance
-    # plt.figure()
-    # plt.plot(list_mean_front, label='front')
-    # plt.plot(list_mean_back, label='back')
-    # plt.legend()
-    # plt.title('mean')
-    # plt.figure()
-    # plt.plot(list_var_front, label='front')
-    # plt.plot(list_var_back, label='back')
-    # plt.legend()
-    # plt.title('variance')
-    # plt.show()
-
     # export mean and variance to a single csv file
     np.savetxt(os.path.join(write_path,'mean_var.csv'),np.transpose([list_mean_front,list_var_front,list_mean_back,list_var_back]),delimiter=',',header='mean_front,var_front,mean_back,var_back',comments='')
 
@@ -124,11 +111,6 @@ def compare_mesh(first_epoch_mesh, next_epoch_mesh, distance_threshold=0.3, samp
     changed_pointcloud.fuse(back_surface_point)
     changed_pointcloud.setCurrentDisplayedScalarField(5)
 
-    # debug
-    # print(changed_pointcloud.getScalarFieldDic())
-    # ret = cc.SavePointCloud(front_surface_point, os.path.join(working_dir,'front.las'))
-    # ret2 = cc.SavePointCloud(back_surface_point, os.path.join(working_dir,'back.las'))
-
     return changed_pointcloud,first_epoch_point,next_epoch_point
 
 
@@ -137,7 +119,7 @@ def process_point_cloud(point_cloud, distance_threshold, is_front=True):
         point_cloud.getScalarFieldDic()['C2M absolute distances'])
     point_cloud.setCurrentScalarField(
         point_cloud.getScalarFieldDic()['C2M absolute distances'])
-    # front_surface_point = first_epoch_point.filterPointsByScalarValue(distance_threshold, sf_dist_first.getMax())
+    
     if is_front:
         surface_point = point_cloud.filterPointsByScalarValue(
             distance_threshold, sf_dist_first.getMax())
@@ -150,22 +132,16 @@ def process_point_cloud(point_cloud, distance_threshold, is_front=True):
     sf = surface_point.getScalarField(ind)
     if is_front:
         sf.fill(0)
-        # sf.fromNpArrayCopy(np.zeros(sf.currentSize(),dtype=np.float32))
     else:
         sf.fill(1)
-        # sf.fromNpArrayCopy(np.ones(sf.currentSize(),dtype=np.float32))
+
 
     return surface_point
 
 def histogram_statistics(point_cloud):
     sf = point_cloud.getScalarField(point_cloud.getScalarFieldDic()[
                                     'C2M absolute distances'])
-    mean,var = sf.computeMeanAndVariance()
-    # asf = sf.toNpArray()
-    # draw histogram of asf
-    # (yhist, xhist) = np.histogram(asf, bins=256) # numpy histogram (without graphics)
-    # plt.hist(asf,bins=256)
-    
+    mean,var = sf.computeMeanAndVariance()   
 
     return mean,var
 

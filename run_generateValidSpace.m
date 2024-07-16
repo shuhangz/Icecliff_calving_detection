@@ -1,7 +1,7 @@
 clc;clear;close all;
 addpath('.\function');
 addpath('.\function\3rdparty');
-folder = 'D:\Working_Project\Point cloud\2022_haibaowan\diff\step9';
+folder = 'D:\Working_Project\Point cloud\2022_haibaowan\publish\distance_threshold_0.35';
 dirLASFile = dir(fullfile(folder,'*.las'));
 outputSubFolder = 'export';
 mkdir(fullfile(folder,outputSubFolder));
@@ -13,7 +13,7 @@ settings.MIN_DIST_PLANEFIT = .1;
 settings.PERCENTAGE_THRESHOLD = .3;
 settings.MAX_XYPLANE_AREA = 10000;
 settings.VOLUME_THRESHOLD = 2;
-settings.DEBUG = true;
+settings.DEBUG = false;
 
 
 result = struct('dateBefore',{},'dateAfter',{}, 'collapsePointCloudClusters',{},...
@@ -69,16 +69,6 @@ for i=1:numClusters
         continue;
     end
     
-%     % remove outliers (clusters that fits a plane)  
-%     referenceVector = [0,0,1];
-%     [~, inliers, ~, meanError] = pcfitplane(clusterPoint, 3*settings.MIN_DIST_PLANEFIT,referenceVector);
-%     inlierPercentage = numel(inliers)/clusterPoint.Count;
-%     
-%     if (inlierPercentage > .5 && meanError < .25)
-%         %         fprintf("exclude cluster #%d, its fit error:%d \n",i,mean(meanError));
-%         continue;
-%     end
-    
     
     % exclude tiny clusters
     shp = alphaShape(clusterPoint.Location,2*settings.MIN_DIST_CLUSTER); % alpha radius should be tuned
@@ -95,12 +85,13 @@ for i=1:numClusters
 end
 
 %% write clustered LAS file
-saveFilePrefix = strcat(dirLASFile(1).name(1:4),'-',dirLASFile(1).name(6:9));
-LASwrite(s,fullfile(folder,outputSubFolder,strcat(saveFilePrefix,'-cluster.las')),'version',14);
+% saveFilePrefix = strcat(dirLASFile(1).name(1:4),'-',dirLASFile(1).name(6:9));
+% LASwrite(s,fullfile(folder,outputSubFolder,strcat(saveFilePrefix,'-cluster.las')),'version',14);
 assert(numel(clusterPointCloudList)>0);
 clusterPointCloudForExport = pccat(clusterPointCloudList);
-pcwrite(clusterPointCloudForExport,fullfile(folder,outputSubFolder,strcat(saveFilePrefix,'_diff.ply')),'Encoding','binary');
-if settings.DEBUG
-    pcshowpair(ptCloud,clusterPointCloudForExport);
-end
+% pcwrite(clusterPointCloudForExport,fullfile(folder,outputSubFolder,strcat(saveFilePrefix,'_diff.ply')),'Encoding','binary');
+% if settings.DEBUG
+%     pcshowpair(ptCloud,clusterPointCloudForExport);
+% end
 pointcloudValidSpace = clusterPointCloudForExport;
+save(fullfile(folder,outputSubFolder,'pointcloudValidSpace.mat'), 'pointcloudValidSpace');

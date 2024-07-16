@@ -1,13 +1,11 @@
 clc;clear; close all;
 addpath('.\function');
 addpath('.\function\3rdparty');
-% folder = 'D:\Working_Project\Point cloud\2022_haibaowan\diff\';
-folder = 'D:\Working_Project\Point cloud\2022_haibaowan\diff\distance_threshold_0.35';
+folder = 'D:\Working_Project\Point cloud\2022_haibaowan\publish\distance_threshold_0.35';
 
 dirLASFile = dir(fullfile(folder,'*.las'));
-% dirLASFile = dir(fullfile(folder,'0216-0217.las'));
 
-outputSubFolder = 'export_single';
+outputSubFolder = 'export';
 validSpaceFilename = 'pointcloudValidSpace.mat';
 
 % mkdir(fullfile(folder,outputSubFolder));
@@ -30,7 +28,7 @@ settings.EXPORT_POINTCLOUD = true;
 
 result = struct('dateBefore',[],'dateAfter',[], 'collapsePointCloudClusters',[],...
     'collapseVolumeList',[],'snowVolumeList',[]);
-load(fullfile(folder,validSpaceFilename));
+load(fullfile(folder,outputSubFolder,validSpaceFilename));
 
 for i=1:length(dirLASFile)
     lasPath = fullfile(dirLASFile(i).folder, dirLASFile(i).name);
@@ -92,7 +90,7 @@ for i=1:length(resultWithSnowVolume)
     db(i) = strcat(YEAR,'-',db_MM,'-',db_dd);
     da(i) = strcat(YEAR,'-',da_MM,'-',da_dd);    
     
-    str = sprintf('%s相比%s的崩解体积为：%f 立方米，积雪体积：%f立方米',resultWithSnowVolume(i).dateAfter,...
+    str = sprintf('Comparing %s and %s, the total calving volume: %f m^3, snow volume: %f m^3',resultWithSnowVolume(i).dateAfter,...
         resultWithSnowVolume(i).dateBefore, v(i),vs(i));
     disp(str);
 end
