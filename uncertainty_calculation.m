@@ -13,7 +13,7 @@ density_ice = 917;
 sigma_snow_density = 50; % std of snow density
 sigma_depth = 0.28; % std of snow depth
 
-
+% assume that the calving object is a cuboid
 %% begin calculation
 sigma_a = sigma_alignment+sigma_s*a;
 sigma_b = sigma_alignment+sigma_s*b;
